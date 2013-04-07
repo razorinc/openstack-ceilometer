@@ -14,10 +14,14 @@ Source0:          http://tarballs.openstack.org/%{pypi_name}/%{pypi_name}-2013.1
 Source1:          %{pypi_name}.conf
 Source2:          %{pypi_name}.logrotate
 
-Source10:         %{name}-api.service
-Source11:         %{name}-collector.service
-Source12:         %{name}-compute.service
-Source13:         %{name}-central.service
+Source10:         %{name}-api.init
+Source100:        %{name}-api.upstart
+Source11:         %{name}-collector.init
+Source110:        %{name}-collector.upstart
+Source12:         %{name}-compute.init
+Source120:        %{name}-compute.upstart
+Source13:         %{name}-central.init
+Source130:        %{name}-central.upstart
 
 #
 # patches_base=grizzly-3
@@ -25,13 +29,20 @@ Source13:         %{name}-central.service
 Patch0001: 0001-Ensure-we-don-t-access-the-net-when-building-docs.patch
 Patch0002: 0002-add-LICENSE.patch
 
+# This is EL6 specific and not upstream
+Patch100:         openstack-ceilometer-newdeps.patch
+
 BuildArch:        noarch
 BuildRequires:    intltool
-BuildRequires:    python-sphinx
+BuildRequires:    python-sphinx10
 BuildRequires:    python-setuptools
 BuildRequires:    python2-devel
 
 BuildRequires:    openstack-utils
+
+# These are required to build due to the requirements check added
+BuildRequires:    python-sqlalchemy0.7
+BuildRequires:    python-webob1.2
 
 
 %description
@@ -54,10 +65,10 @@ Requires:         python-lxml
 Requires:         python-anyjson
 Requires:         python-stevedore
 
-Requires:         python-sqlalchemy
+Requires:         python-sqlalchemy0.7
 Requires:         python-migrate
 
-Requires:         python-webob
+Requires:         python-webob >= 1.2
 Requires:         python-oslo-config
 Requires:         PyYAML
 
@@ -75,9 +86,9 @@ Group:            Applications/System
 Requires:         python-ceilometer = %{version}-%{release}
 Requires:         openstack-utils
 
-Requires(post):   systemd-units
-Requires(preun):  systemd-units
-Requires(postun): systemd-units
+Requires(post):   chkconfig
+Requires(postun): initscripts
+Requires(preun):  chkconfig
 Requires(pre):    shadow-utils
 
 
@@ -166,7 +177,7 @@ Group:            Documentation
 
 # Required to build module documents
 BuildRequires:    python-eventlet
-BuildRequires:    python-sqlalchemy
+BuildRequires:    python-sqlalchemy0.7
 BuildRequires:    python-webob
 # while not strictly required, quiets the build down when building docs.
 BuildRequires:    python-migrate, python-iso8601
@@ -183,6 +194,9 @@ This package contains documentation files for ceilometer.
 
 %patch0001 -p1
 %patch0002 -p1
+
+# Apply EL6 patch
+%patch100 -p1
 
 find . \( -name .gitignore -o -name .placeholder \) -delete
 
@@ -203,7 +217,7 @@ export PYTHONPATH="$( pwd ):$PYTHONPATH"
 pushd doc
 
 %if 0%{?with_doc}
-SPHINX_DEBUG=1 sphinx-build -b html source build/html
+SPHINX_DEBUG=1 sphinx-1.0-build -b html source build/html
 # Fix hidden-file-or-dir warnings
 rm -fr build/html/.doctrees build/html/.buildinfo
 %endif
@@ -223,10 +237,17 @@ install -p -D -m 640 etc/ceilometer/sources.json %{buildroot}%{_sysconfdir}/ceil
 install -p -D -m 640 etc/ceilometer/pipeline.yaml %{buildroot}%{_sysconfdir}/ceilometer/pipeline.yaml
 
 # Install initscripts for services
-install -p -D -m 644 %{SOURCE10} %{buildroot}%{_unitdir}/%{name}-api.service
-install -p -D -m 644 %{SOURCE11} %{buildroot}%{_unitdir}/%{name}-collector.service
-install -p -D -m 644 %{SOURCE12} %{buildroot}%{_unitdir}/%{name}-compute.service
-install -p -D -m 644 %{SOURCE13} %{buildroot}%{_unitdir}/%{name}-central.service
+install -p -D -m 755 %{SOURCE10} %{buildroot}%{_initrddir}/%{name}-api
+install -p -D -m 755 %{SOURCE11} %{buildroot}%{_initrddir}/%{name}-collector
+install -p -D -m 755 %{SOURCE12} %{buildroot}%{_initrddir}/%{name}-compute
+install -p -D -m 755 %{SOURCE13} %{buildroot}%{_initrddir}/%{name}-central
+
+# Install upstart jobs examples
+install -d -m 755 %{buildroot}%{_datadir}/ceilometer
+install -p -m 644 %{SOURCE100} %{buildroot}%{_datadir}/ceilometer/
+install -p -m 644 %{SOURCE110} %{buildroot}%{_datadir}/ceilometer/
+install -p -m 644 %{SOURCE120} %{buildroot}%{_datadir}/ceilometer/
+install -p -m 644 %{SOURCE130} %{buildroot}%{_datadir}/ceilometer/
 
 # Install logrotate
 install -p -D -m 644 %{SOURCE2} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
@@ -250,92 +271,88 @@ exit 0
 %post compute
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /sbin/chkconfig --add %{name}-compute
 fi
 
 %post collector
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /sbin/chkconfig --add %{name}-collector
 fi
 
 %post api
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /sbin/chkconfig --add %{name}-api
 fi
 
 %post central
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /sbin/chkconfig --add %{name}-central
 fi
 
 %preun compute
 if [ $1 -eq 0 ] ; then
     for svc in compute; do
-        /bin/systemctl --no-reload disable %{name}-${svc}.service > /dev/null 2>&1 || :
-        /bin/systemctl stop %{name}-${svc}.service > /dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} stop > /dev/null 2>&1
+        /sbin/chkconfig --del %{name}-${svc}
     done
 fi
 
 %preun collector
 if [ $1 -eq 0 ] ; then
     for svc in collector; do
-        /bin/systemctl --no-reload disable %{name}-${svc}.service > /dev/null 2>&1 || :
-        /bin/systemctl stop %{name}-${svc}.service > /dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} stop > /dev/null 2>&1
+        /sbin/chkconfig --del %{name}-${svc}
     done
 fi
 
 %preun api
 if [ $1 -eq 0 ] ; then
     for svc in api; do
-        /bin/systemctl --no-reload disable %{name}-${svc}.service > /dev/null 2>&1 || :
-        /bin/systemctl stop %{name}-${svc}.service > /dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} stop > /dev/null 2>&1
+        /sbin/chkconfig --del %{name}-${svc}
     done
 fi
 
 %preun central
 if [ $1 -eq 0 ] ; then
     for svc in agent; do
-        /bin/systemctl --no-reload disable %{name}-${svc}.service > /dev/null 2>&1 || :
-        /bin/systemctl stop %{name}-${svc}.service > /dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} stop > /dev/null 2>&1
+        /sbin/chkconfig --del %{name}-${svc}
     done
 fi
 
 %postun compute
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ] ; then
     # Package upgrade, not uninstall
     for svc in compute; do
-        /bin/systemctl try-restart %{name}-${svc}.service >/dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} condrestart > /dev/null 2>&1 || :
     done
 fi
 
 %postun collector
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ] ; then
     # Package upgrade, not uninstall
     for svc in collector; do
-        /bin/systemctl try-restart %{name}-${svc}.service >/dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} condrestart > /dev/null 2>&1 || :
     done
 fi
 
 %postun api
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ] ; then
     # Package upgrade, not uninstall
     for svc in api; do
-        /bin/systemctl try-restart %{name}-${svc}.service >/dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} condrestart > /dev/null 2>&1 || :
     done
 fi
 
 %postun central
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ] ; then
     # Package upgrade, not uninstall
     for svc in central; do
-        /bin/systemctl try-restart %{name}-${svc}.service >/dev/null 2>&1 || :
+        /sbin/service %{name}-${svc} condrestart > /dev/null 2>&1 || :
     done
 fi
 
@@ -350,6 +367,7 @@ fi
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 
 %dir %attr(0755, ceilometer, root) %{_localstatedir}/log/ceilometer
+%dir %attr(0755, ceilometer, root) %{_localstatedir}/run/ceilometer
 
 %{_bindir}/ceilometer-*
 
@@ -371,25 +389,29 @@ fi
 
 %files compute
 %{_bindir}/ceilometer-agent-compute
-%{_unitdir}/%{name}-compute.service
+%{_initrddir}/%{name}-compute
+%{_datarootdir}/ceilometer/%{name}-compute.upstart
 
 
 %files collector
 %{_bindir}/ceilometer-collector
-%{_unitdir}/%{name}-collector.service
+%{_initrddir}/%{name}-collector
+%{_datarootdir}/ceilometer/%{name}-collector.upstart
 
 
 %files api
 %doc ceilometer/api/v1/static/LICENSE.*
 %{_bindir}/ceilometer-api
-%{_unitdir}/%{name}-api.service
+%{_initrddir}/%{name}-api
+%{_datarootdir}/ceilometer/%{name}-api.upstart
 
 
 %files central
 %{_bindir}/ceilometer-agent-central
-%{_unitdir}/%{name}-central.service
+%{_initrddir}/%{name}-central
+%{_datarootdir}/ceilometer/%{name}-central.upstart
 
 
 %changelog
-* Tue Mar 26 2013 Pádraig Brady <P@draigBrady.com> - 2013.1-0.5.g3
+* Sat Apr  7 2013 Pádraig Brady <P@draigBrady.com> - 2013.1-0.5.g3
 - Initial package
