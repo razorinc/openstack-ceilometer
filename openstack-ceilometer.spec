@@ -250,6 +250,9 @@ install -p -m 644 %{SOURCE130} %{buildroot}%{_datadir}/ceilometer/
 # Install logrotate
 install -p -D -m 644 %{SOURCE2} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 
+# Install pid directory
+install -d -m 755 %{buildroot}%{_localstatedir}/run/ceilometer
+
 # Remove unneeded in production stuff
 rm -f %{buildroot}%{_bindir}/ceilometer-debug
 rm -fr %{buildroot}%{python_sitelib}/tests/
