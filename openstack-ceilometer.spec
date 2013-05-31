@@ -35,6 +35,8 @@ BuildArch:        noarch
 BuildRequires:    intltool
 BuildRequires:    python-sphinx10
 BuildRequires:    python-setuptools
+BuildRequires:    python-pbr
+BuildRequires:    python-d2to1
 BuildRequires:    python2-devel
 
 BuildRequires:    openstack-utils
@@ -63,6 +65,7 @@ Requires:         python-iso8601
 Requires:         python-lxml
 Requires:         python-anyjson
 Requires:         python-stevedore
+Requires:         python-msgpack
 
 Requires:         python-sqlalchemy0.7
 Requires:         python-migrate
