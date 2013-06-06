@@ -4,7 +4,7 @@
 
 Name:             openstack-ceilometer
 Version:          2013.2
-Release:          0.1.b1%{?dist}
+Release:          0.2.b1%{?dist}
 Summary:          OpenStack measurement collection service
 
 Group:            Applications/System
@@ -322,7 +322,7 @@ fi
 
 %preun central
 if [ $1 -eq 0 ] ; then
-    for svc in agent; do
+    for svc in central; do
         /sbin/service %{name}-${svc} stop > /dev/null 2>&1
         /sbin/chkconfig --del %{name}-${svc}
     done
@@ -417,6 +417,9 @@ fi
 
 
 %changelog
+* Thu Jun  6 2013 Pádraig Brady <P@draigBrady.com> - 2013.2-0.2.b1
+- Fix uninstall for openstack-ceilometer-central
+
 * Fri May 31 2013 Pádraig Brady <P@draigBrady.com> - 2013.2-0.1.b1
 - Havana milestone 1
 
