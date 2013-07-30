@@ -4,7 +4,7 @@
 
 Name:             openstack-ceilometer
 Version:          2013.2
-Release:          0.2.b1%{?dist}
+Release:          0.3.b1%{?dist}
 Summary:          OpenStack measurement collection service
 
 Group:            Applications/System
@@ -55,6 +55,8 @@ Requires:         python-lxml
 Requires:         python-anyjson
 Requires:         python-stevedore
 Requires:         python-msgpack
+Requires:         python-netaddr
+Requires:         python-six
 
 Requires:         python-sqlalchemy
 Requires:         python-migrate
@@ -392,6 +394,9 @@ fi
 
 
 %changelog
+* Tue Jul 30 2013 Pádraig Brady <P@draigBrady.com> - 2013.2-0.3.b1
+- Require python-netaddr and python-six (from oslo common)
+
 * Thu Jun  6 2013 Pádraig Brady <P@draigBrady.com> - 2013.2-0.2.b1
 - Fix uninstall for openstack-ceilometer-central
 
