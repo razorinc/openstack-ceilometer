@@ -183,7 +183,7 @@ This package contains documentation files for ceilometer.
 %endif
 
 %prep
-%setup -q -n ceilometer-%{version}.b1
+%setup -q -n ceilometer-%{version}
 
 %patch0001 -p1
 
