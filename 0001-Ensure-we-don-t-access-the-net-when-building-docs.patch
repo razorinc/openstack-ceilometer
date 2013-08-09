@@ -11,14 +11,14 @@ Change-Id: I9d02fb4053a8106672aded1614a2850e21603eb2
  1 file changed, 1 deletion(-)
 
 diff --git a/doc/source/conf.py b/doc/source/conf.py
-index 9af5f54..2c8bdf9 100644
+index 9d01807..ebe3d73 100644
 --- a/doc/source/conf.py
 +++ b/doc/source/conf.py
-@@ -139,7 +139,6 @@ write_autodoc_index()
- # They can be extensions coming with Sphinx (named 'sphinx.ext.*')
+@@ -141,7 +141,6 @@ write_autodoc_index()
  # or your custom ones.
- extensions = ['sphinx.ext.autodoc',
--              'sphinx.ext.intersphinx',
-               'sphinx.ext.todo',
-               'sphinxcontrib.autohttp.flask',
-               'wsmeext.sphinxext',
+ extensions = [
+     'sphinx.ext.autodoc',
+-    'sphinx.ext.intersphinx',
+     'sphinx.ext.todo',
+     'sphinxcontrib.autohttp.flask',
+     'wsmeext.sphinxext',
