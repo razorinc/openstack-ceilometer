@@ -208,6 +208,9 @@ find ceilometer -name \*.py -exec sed -i '/\/usr\/bin\/env python/{d;q}' {} +
 # TODO: Have the following handle multi line entries
 sed -i '/setup_requires/d; /install_requires/d; /dependency_links/d' setup.py
 
+# Nuke requirements.txt (which requires specific versions, etc)
+echo "" > requirements.txt
+
 %build
 %{__python} setup.py build
 
