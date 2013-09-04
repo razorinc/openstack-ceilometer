@@ -64,6 +64,7 @@ Requires:         python-migrate
 Requires:         python-webob
 Requires:         python-oslo-config
 Requires:         PyYAML
+Requires:         python-alembic
 
 %description -n   python-ceilometer
 OpenStack ceilometer provides services to measure and
@@ -394,6 +395,9 @@ fi
 
 
 %changelog
+* Wed Sep 4 2013 Dan Prince <dprince@redhat.com> - 2013.2-0.3.b1
+- Require python-alembic.
+
 * Tue Jul 30 2013 Pádraig Brady <P@draigBrady.com> - 2013.2-0.3.b1
 - Require python-netaddr and python-six (from oslo common)
 
