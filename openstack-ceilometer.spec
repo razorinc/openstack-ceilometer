@@ -138,6 +138,7 @@ Group:            Applications/System
 Requires:         %{name}-common = %{version}-%{release}
 
 Requires:         pymongo
+Requires:         python-happybase
 
 %description collector
 OpenStack ceilometer provides services to measure and
@@ -153,6 +154,7 @@ Group:            Applications/System
 Requires:         %{name}-common = %{version}-%{release}
 
 Requires:         pymongo
+Requires:         python-happybase
 Requires:         python-flask
 Requires:         python-pecan
 Requires:         python-wsme
@@ -191,6 +193,9 @@ This package contains documentation files for ceilometer.
 find . \( -name .gitignore -o -name .placeholder \) -delete
 
 find ceilometer -name \*.py -exec sed -i '/\/usr\/bin\/env python/{d;q}' {} +
+
+# Nuke requirements.txt (which requires specific versions, etc)
+echo "" > requirements.txt
 
 # TODO: Have the following handle multi line entries
 sed -i '/setup_requires/d; /install_requires/d; /dependency_links/d' setup.py
@@ -395,6 +400,10 @@ fi
 
 
 %changelog
+* Wed Sep 6 2013 Dan Prince <dprince@redhat.com> - 2013.2-0.3.b1
+- Add dependency on python-happybase.
+- Nuke requirements.txt.
+
 * Wed Sep 4 2013 Dan Prince <dprince@redhat.com> - 2013.2-0.3.b1
 - Require python-alembic.
 
