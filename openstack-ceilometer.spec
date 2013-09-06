@@ -149,6 +149,7 @@ Group:            Applications/System
 Requires:         %{name}-common = %{version}-%{release}
 
 Requires:         pymongo
+Requires:         python-happybase
 
 %description collector
 OpenStack ceilometer provides services to measure and
@@ -164,6 +165,7 @@ Group:            Applications/System
 Requires:         %{name}-common = %{version}-%{release}
 
 Requires:         pymongo
+Requires:         python-happybase
 Requires:         python-flask
 Requires:         python-pecan
 Requires:         python-wsme
@@ -423,6 +425,9 @@ fi
 
 
 %changelog
+* Fri Sep 6 2013 Dan Prince <dprince@redhat.com> - 2013.2-0.3.b1
+- Add dependency on python-happybase.
+
 * Wed Sep 4 2013 Dan Prince <dprince@redhat.com> - 2013.2-0.3.b1
 - Require python-alembic.
 
