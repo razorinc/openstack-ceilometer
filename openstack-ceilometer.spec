@@ -398,6 +398,10 @@ fi
 
 
 %changelog
+* Thu Oct 10 2013 Dan Prince <dprince@redhat.com> - 2013.2-0.3.b1
+- Require python-six >= 1.4.1.
+- Require python-wsme >= 0.5b5.
+
 * Wed Sep 6 2013 Dan Prince <dprince@redhat.com> - 2013.2-0.3.b1
 - Nuke requirements.txt.
 
