@@ -56,7 +56,7 @@ Requires:         python-anyjson
 Requires:         python-stevedore
 Requires:         python-msgpack
 Requires:         python-netaddr
-Requires:         python-six
+Requires:         python-six >= 1.4.1
 
 Requires:         python-sqlalchemy
 Requires:         python-migrate
@@ -155,7 +155,7 @@ Requires:         %{name}-common = %{version}-%{release}
 Requires:         pymongo
 Requires:         python-flask
 Requires:         python-pecan
-Requires:         python-wsme
+Requires:         python-wsme >= 0.5b5
 
 %description api
 OpenStack ceilometer provides services to measure and
